@@ -42,5 +42,5 @@ MimeType=x-scheme-handler/ssh;x-scheme-handler/sftp;
 DESKTOP
 
 update-desktop-database "$APPS" 2>/dev/null || true
-gtk-update-icon-cache -q -t "$ICONS" 2>/dev/null || true
+[ -f "$ICONS/icon-theme.cache" ] && gtk-update-icon-cache -q "$ICONS" 2>/dev/null || true  # refresh, never create, a cache
 echo "Tether installed: $BIN/tether, and in the app launcher."
