@@ -1,0 +1,28 @@
+[package]
+name = "tether-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = "1.0.104"
+base64 = "0.23.1"
+chrono = { version = "0.4.45", features = ["serde"] }
+dirs = "7.0.0"
+futures = "0.3.34"
+keyring = "4"
+parking_lot = "0.13.0"
+portable-pty = "0.9"
+russh = "0.65"
+russh-sftp = "3"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+serialport = "4.10.1"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["full"] }
+tokio-tungstenite = "0.30"
+tracing = "0.1.44"
+uuid = { version = "1.29.1", features = ["v4", "serde"] }
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55"
