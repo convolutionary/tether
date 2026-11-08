@@ -1618,17 +1618,20 @@ textarea:focus-visible {
 
 .welcome {
   flex: 1;
+  min-width: 0;
   height: 100%;
   overflow: auto;
+  container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-1);
-  padding: 32px;
+  padding: 32px 24px;
 }
 
 .welcome-inner {
   width: min(520px, 100%);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -2779,4 +2782,9 @@ textarea:focus-visible {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
   }
+}
+
+@container (max-width: 440px) {
+  .welcome-act .keys,
+  .wr-when { display: none; }
 }

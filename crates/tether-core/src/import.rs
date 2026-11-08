@@ -163,19 +163,24 @@ pub fn mobaxterm(path: &Path) -> Imported {
             continue;
         }
         let parts: Vec<&str> = val.split('#').collect();
-        let (Some(code), Some(fields)) = (parts.get(1), parts.get(2)) else { continue };
+        let (Some(_icon), Some(fields)) = (parts.get(1), parts.get(2)) else { continue };
         let f: Vec<&str> = fields.split('%').collect();
         let get = |i: usize| f.get(i).map(|s| s.trim().to_string()).unwrap_or_default();
-        let protocol = match *code {
-            "109" => Protocol::Ssh,
-            "140" => Protocol::Sftp,
-            "98" => Protocol::Telnet,
-            "91" => Protocol::Rdp,
-            "128" => Protocol::Vnc,
-            "131" => Protocol::Serial,
-            "151" => Protocol::Mosh,
+        // "#icon#type%field%field…": the first number is only the icon, the type leads the fields
+        let protocol = match f.first().map(|t| t.trim()).unwrap_or("") {
+            "0" => Protocol::Ssh,
+            "1" => Protocol::Telnet,
+            "4" => Protocol::Rdp,
+            "5" => Protocol::Vnc,
+            "7" => Protocol::Sftp,
+            "8" => Protocol::Serial,
+            "12" => Protocol::Mosh,
             other => {
-                out.skipped.push(format!("{key}: MobaXterm session type {other} has no equivalent here"));
+                let what = match other {
+                    "2" => "rsh", "3" => "XDMCP", "6" => "FTP", "9" => "file", "10" => "shell",
+                    "11" => "browser", "13" => "S3", "14" => "WSL", _ => "this",
+                };
+                out.skipped.push(format!("{key}: {what} sessions have no equivalent here"));
                 continue;
             }
         };
@@ -191,12 +196,10 @@ pub fn mobaxterm(path: &Path) -> Imported {
             s.user = get(3);
         }
         if protocol == Protocol::Ssh {
-            // the private key is the field that looks like a path to one
-            if let Some(k) = f.iter().find(|v| {
-                let l = v.to_ascii_lowercase();
-                (l.ends_with(".ppk") || l.ends_with(".pem") || l.contains("id_") || l.ends_with(".key")) && !l.starts_with('_')
-            }) {
-                s.identity = k.replace("_ProfileDir_", &dirs::home_dir().unwrap_or_default().to_string_lossy());
+            // field 14 is the private key; _ProfileDir_ is the Windows profile the file belongs to
+            let key = get(14);
+            if !key.is_empty() {
+                s.identity = moba_key(&key, path);
             }
         }
         if s.host.is_empty() && protocol != Protocol::Serial {
@@ -206,6 +209,26 @@ pub fn mobaxterm(path: &Path) -> Imported {
         out.sessions.push(s);
     }
     out
+}
+
+/// Where a MobaXterm key path points on this machine. `_ProfileDir_` is the home of the Windows
+/// user; when the file is read from a Windows drive mounted elsewhere, that home is the folder the
+/// file sits in (…/Users/<name>/AppData/Roaming/MobaXterm/MobaXterm.ini), not ours.
+fn moba_key(raw: &str, ini: &Path) -> String {
+    let Some(rel) = raw.strip_prefix("_ProfileDir_") else { return raw.to_string() };
+    let rel: Vec<&str> = rel.split(['\\', '/']).filter(|p| !p.is_empty()).collect();
+    let under = |base: &Path| rel.iter().fold(base.to_path_buf(), |p, part| p.join(part));
+    let ours = dirs::home_dir().map(|h| under(&h));
+    if let Some(p) = ours.as_ref().filter(|p| p.exists()) {
+        return p.to_string_lossy().into_owned();
+    }
+    let theirs = ini
+        .ancestors()
+        .find(|a| a.file_name().is_some_and(|n| n.eq_ignore_ascii_case("AppData")))
+        .and_then(|a| a.parent())
+        .map(under)
+        .filter(|p| p.exists());
+    theirs.or(ours).map(|p| p.to_string_lossy().into_owned()).unwrap_or_default()
 }
 
 // ---------------------------------------------------------------- PuTTY
@@ -337,16 +360,19 @@ mod tests {
         let p = dir.join("s.mxtsessions");
         std::fs::write(
             &p,
-            "[Bookmarks]\nSubRep=\nImgNum=42\n[Bookmarks_1]\nSubRep=Work\\Lab\nImgNum=41\nrouter=#109#0%192.168.1.1%22%root%%-1%-1%%%22%%0%0%0%C:\\keys\\lab.ppk%%-1%0%0%0%%1080%%0%0%1#MobaFont%10#0# #-1\nwin=#91#4%10.0.0.9%3389%Administrator%0%-1#MobaFont#0# #-1\nftp=#130#6%ftp.example%21%anon#x#0# #-1\n",
+            "[Bookmarks]\nSubRep=\nImgNum=42\n[Bookmarks_1]\nSubRep=Work\\Lab\nImgNum=41\nrouter=#109#0%192.168.1.1%22%root%%-1%-1%%%22%%0%0%0%C:\\keys\\lab.ppk%%-1%0%0%0%%1080%%0%0%1#MobaFont%10#0# #-1\nwin=#91#4%10.0.0.9%3389%Administrator%0%-1#MobaFont#0# #-1\nftp=#130#6%ftp.example%21%anon#x#0# #-1\nwsl=#151#14%Ubuntu%\nhome=#109#0%10.0.0.2\t%22%ops%%-1%-1%%%%%0%0%0%_ProfileDir_\\.ssh\\nope%%-1#MobaFont\n",
         )
         .unwrap();
         let r = mobaxterm(&p);
-        assert_eq!(r.sessions.len(), 2);
-        assert_eq!(r.skipped.len(), 1);
+        assert_eq!(r.sessions.len(), 3);
+        assert_eq!(r.skipped.len(), 2);
         let s = &r.sessions[0];
         assert_eq!((s.name.as_str(), s.folder.as_str(), s.host.as_str(), s.user.as_str()), ("router", "Work/Lab", "192.168.1.1", "root"));
         assert_eq!(s.identity, "C:\\keys\\lab.ppk");
         assert_eq!(r.sessions[1].protocol, Protocol::Rdp);
+        let h = &r.sessions[2];
+        assert_eq!(h.host, "10.0.0.2");
+        assert!(h.identity.ends_with("nope") && h.identity.contains(".ssh"), "{}", h.identity);
         std::fs::remove_dir_all(dir).ok();
     }
 

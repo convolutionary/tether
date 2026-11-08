@@ -385,8 +385,9 @@ async fn authenticate(
         };
     }
 
-    // 1. an explicit key file
-    if !session.identity.trim().is_empty() {
+    // 1. an explicit key file (one that isn't there counts as none, so the usual keys still get tried)
+    let named = !session.identity.trim().is_empty() && expand_home(session.identity.trim()).exists();
+    if named {
         let path = expand_home(session.identity.trim());
         if let Some(key) = load_key(prompter, &path, term).await? {
             check!(handle.authenticate_publickey(user, PrivateKeyWithHashAlg::new(Arc::new(key), rsa_hash)).await?);
@@ -411,7 +412,7 @@ async fn authenticate(
     }
 
     // 3. the usual key files, when no key was named (unencrypted ones silently; encrypted ones ask)
-    if session.identity.trim().is_empty() && may(&allowed, MethodKind::PublicKey) {
+    if !named && may(&allowed, MethodKind::PublicKey) {
         for name in ["id_ed25519", "id_ecdsa", "id_rsa"] {
             let path = ssh_dir().join(name);
             if !path.exists() || !may(&allowed, MethodKind::PublicKey) {
