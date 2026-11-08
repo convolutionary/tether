@@ -68,3 +68,25 @@ export function saveSnippets(next: Snippet[]) {
   set({ snippets: next });
   api.saveSnippets(next).catch(() => {});
 }
+
+// ---- folders: a session's folder is a "/"-separated path; folders exist because sessions are in them
+
+const under = (folder: string, path: string) => folder === path || folder.startsWith(`${path}/`);
+
+export function moveSessions(ids: string[], folder: string) {
+  const want = new Set(ids);
+  saveSessions(get().sessions.map((s) => (want.has(s.id) ? { ...s, folder } : s)));
+}
+
+/** Renames a folder (or moves it, when the parent part changes), carrying its subfolders along. */
+export function renameFolder(from: string, to: string) {
+  saveSessions(get().sessions.map((s) => (under(s.folder, from) ? { ...s, folder: to + s.folder.slice(from.length) } : s)));
+}
+
+/** Removes a folder; what was inside moves up one level. Returns an undo. */
+export function deleteFolder(path: string): () => void {
+  const before = get().sessions;
+  const parent = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+  saveSessions(before.map((s) => (under(s.folder, path) ? { ...s, folder: parent + s.folder.slice(path.length).replace(/^\//, parent ? "/" : "") } : s)));
+  return () => saveSessions(before);
+}

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import {
   AppWindow,
   Cable,
+  Check,
   FolderSync,
   Monitor,
   MonitorSmartphone,
@@ -140,9 +141,13 @@ export interface MenuItem {
   hint?: string;
   danger?: boolean;
   disabled?: boolean;
+  /** shows a check mark, for choices like "sort by" */
+  checked?: boolean;
   run: () => void;
 }
-export type MenuEntry = MenuItem | "-";
+/** "-" draws a separator, { heading } a small label above a group of choices */
+export type MenuEntry = MenuItem | "-" | { heading: string };
+const isItem = (e: MenuEntry): e is MenuItem => typeof e === "object" && "run" in e;
 
 /** A context menu at the pointer. Close by choosing, Escape, or clicking away. */
 export function Menu({ x, y, items, onClose }: { x: number; y: number; items: MenuEntry[]; onClose: () => void }) {
@@ -155,7 +160,7 @@ export function Menu({ x, y, items, onClose }: { x: number; y: number; items: Me
     const r = el.getBoundingClientRect();
     setPos({ x: Math.min(x, window.innerWidth - r.width - 6), y: Math.min(y, window.innerHeight - r.height - 6) });
   }, [x, y]);
-  const real = items.map((it, i) => ({ it, i })).filter((e) => e.it !== "-" && !(e.it as MenuItem).disabled);
+  const real = items.map((it, i) => ({ it, i })).filter((e) => isItem(e.it) && !e.it.disabled);
   useEffect(() => {
     const down = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && onClose();
     const key = (e: KeyboardEvent) => {
@@ -188,6 +193,8 @@ export function Menu({ x, y, items, onClose }: { x: number; y: number; items: Me
       {items.map((it, i) =>
         it === "-" ? (
           <div key={i} className="menu-sep" />
+        ) : !isItem(it) ? (
+          <div key={i} className="menu-heading">{it.heading}</div>
         ) : (
           <button
             key={i}
@@ -200,7 +207,9 @@ export function Menu({ x, y, items, onClose }: { x: number; y: number; items: Me
               it.run();
             }}
           >
-            <span className="menu-icon">{it.icon && <it.icon size={14} strokeWidth={1.75} />}</span>
+            <span className="menu-icon">
+              {it.checked ? <Check size={14} strokeWidth={2} /> : it.icon && <it.icon size={14} strokeWidth={1.75} />}
+            </span>
             <span className="menu-label">{it.label}</span>
             {it.hint && <span className="menu-hint">{it.hint}</span>}
           </button>

@@ -546,13 +546,21 @@ export function handleEngine(e: EngineEvent) {
 /** The folder tree as nested folders → sessions (for the Sessions panel). */
 export type Tree = { name: string; path: string; folders: Tree[]; sessions: Session[] };
 
-export function tree(sessions: Session[]): Tree {
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+
+/** Natural order: "web2" before "web10", 31.x before 104.x, case ignored. */
+export const natural = (a: string, b: string) => collator.compare(a, b);
+
+/**
+ * Sessions as a folder tree. `extra` adds folders that hold nothing yet; `order` sorts the
+ * sessions inside each folder (folders themselves always go by name).
+ */
+export function tree(sessions: Session[], order: (a: Session, b: Session) => number = (a, b) => natural(label(a), label(b)), extra: string[] = []): Tree {
   const root: Tree = { name: "", path: "", folders: [], sessions: [] };
-  for (const s of sessions) {
+  const at = (folder: string) => {
     let node = root;
-    const parts = s.folder.split("/").map((x) => x.trim()).filter(Boolean);
     let path = "";
-    for (const part of parts) {
+    for (const part of folder.split("/").map((x) => x.trim()).filter(Boolean)) {
       path = path ? `${path}/${part}` : part;
       let next = node.folders.find((f) => f.name === part);
       if (!next) {
@@ -561,11 +569,13 @@ export function tree(sessions: Session[]): Tree {
       }
       node = next;
     }
-    node.sessions.push(s);
-  }
+    return node;
+  };
+  for (const f of extra) at(f);
+  for (const s of sessions) at(s.folder).sessions.push(s);
   const sort = (t: Tree) => {
-    t.folders.sort((a, b) => a.name.localeCompare(b.name));
-    t.sessions.sort((a, b) => label(a).localeCompare(label(b)));
+    t.folders.sort((a, b) => natural(a.name, b.name));
+    t.sessions.sort(order);
     t.folders.forEach(sort);
   };
   sort(root);
