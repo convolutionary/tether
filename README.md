@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/banner.png" alt="Tether" width="100%"></p>
+
 # Tether
 
 Remote sessions, terminals and files in one window, for Linux and Windows.

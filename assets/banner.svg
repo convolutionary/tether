@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="1600" height="520" viewBox="0 0 1600 520">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14161a"/>
+      <stop offset="1" stop-color="#0b0c0e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.35" r="0.6">
+      <stop offset="0" stop-color="#8b9cff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#8b9cff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.05"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.55" stop-color="#0b0c0e" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0b0c0e" stop-opacity="1"/>
+    </linearGradient>
+    <clipPath id="win"><rect x="820" y="70" width="700" height="430" rx="14"/></clipPath>
+  </defs>
+  <rect width="1600" height="520" rx="24" fill="url(#bg)"/>
+  <rect width="1600" height="520" rx="24" fill="url(#dots)"/>
+  <rect width="1600" height="520" rx="24" fill="url(#glow)"/>
+
+  <!-- mark -->
+  <g transform="translate(96 150)">
+    <rect width="88" height="88" rx="22" fill="#1d2026" stroke="#ffffff" stroke-opacity="0.09"/>
+    <g transform="translate(44 44) scale(3.6) translate(-8 -8)" fill="none">
+      <circle cx="3.5" cy="12.5" r="2.25" stroke="#e7e8ea" stroke-width="1.5"/>
+      <circle cx="12.5" cy="3.5" r="2.4" fill="#8b9cff"/>
+      <path d="M5.2 10.8 10.8 5.2" stroke="#e7e8ea" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.6 1.9"/>
+    </g>
+  </g>
+  <text x="96" y="318" font-family="Inter" font-weight="700" font-size="76" letter-spacing="-2.5" fill="#e7e8ea">Tether</text>
+  <text x="98" y="364" font-family="Inter" font-weight="400" font-size="25" fill="#a4a8b0">SSH, SFTP, RDP, VNC and serial in one window.</text>
+  <g font-family="JetBrains Mono" font-size="15" fill="#8b9cff">
+    <rect x="98" y="398" width="82" height="30" rx="15" fill="#8b9cff" fill-opacity="0.12"/>
+    <text x="139" y="418" text-anchor="middle">linux</text>
+    <rect x="190" y="398" width="104" height="30" rx="15" fill="#8b9cff" fill-opacity="0.12"/>
+    <text x="242" y="418" text-anchor="middle">windows</text>
+    <rect x="304" y="398" width="72" height="30" rx="15" fill="#8b9cff" fill-opacity="0.12"/>
+    <text x="340" y="418" text-anchor="middle">rust</text>
+  </g>
+
+  <!-- the app -->
+  <g clip-path="url(#win)">
+    <rect x="820" y="70" width="700" height="430" fill="#111215"/>
+    <!-- title bar -->
+    <rect x="820" y="70" width="700" height="40" fill="#121316"/>
+    <rect x="1040" y="80" width="260" height="20" rx="6" fill="#1c1e22"/>
+    <text x="1056" y="94.5" font-family="Inter" font-size="11" fill="#6d717a">Connect or search</text>
+    <line x1="820" y1="110" x2="1520" y2="110" stroke="#ffffff" stroke-opacity="0.065"/>
+    <!-- sidebar -->
+    <rect x="820" y="110" width="200" height="390" fill="#16181b"/>
+    <line x1="1020" y1="110" x2="1020" y2="500" stroke="#ffffff" stroke-opacity="0.065"/>
+    <g font-family="Inter" font-size="12">
+      <text x="838" y="136" font-size="10" font-weight="600" letter-spacing="1" fill="#6d717a">SESSIONS</text>
+      <text x="838" y="164" fill="#a4a8b0">▾  production</text>
+      <circle cx="858" cy="186" r="3.5" fill="#6fcf97"/><text x="870" y="190" fill="#e7e8ea">web-01</text>
+      <circle cx="858" cy="210" r="3.5" fill="#8b9cff"/><text x="870" y="214" fill="#e7e8ea">db-primary</text>
+      <circle cx="858" cy="234" r="3.5" fill="#8b9cff"/><text x="870" y="238" fill="#e7e8ea">cache</text>
+      <text x="838" y="268" fill="#a4a8b0">▾  lab</text>
+      <circle cx="858" cy="290" r="3.5" fill="#6fb3e6"/><text x="870" y="294" fill="#e7e8ea">win-build</text>
+      <circle cx="858" cy="314" r="3.5" fill="#c99be8"/><text x="870" y="318" fill="#e7e8ea">router-console</text>
+      <circle cx="858" cy="338" r="3.5" fill="#e88fa6"/><text x="870" y="342" fill="#e7e8ea">pi-desk</text>
+      <text x="838" y="372" fill="#a4a8b0">▸  personal</text>
+    </g>
+    <!-- tabs -->
+    <rect x="1020" y="110" width="500" height="34" fill="#121316"/>
+    <path d="M1030 144 v-24 a6 6 0 0 1 6 -6 h104 a6 6 0 0 1 6 6 v24 z" fill="#0b0c0e"/>
+    <circle cx="1046" cy="129" r="3.5" fill="#6fcf97"/>
+    <text x="1058" y="133" font-family="Inter" font-size="12" font-weight="500" fill="#e7e8ea">web-01</text>
+    <circle cx="1166" cy="129" r="3.5" fill="#8b9cff"/>
+    <text x="1178" y="133" font-family="Inter" font-size="12" fill="#a4a8b0">db-primary</text>
+    <!-- terminal -->
+    <rect x="1020" y="144" width="320" height="356" fill="#0b0c0e"/>
+    <g font-family="JetBrains Mono" font-size="12.5">
+      <text x="1036" y="172"><tspan fill="#6fcf97">phi@web-01</tspan><tspan fill="#6d717a">:</tspan><tspan fill="#8b9cff">~/app</tspan><tspan fill="#e7e8ea"> $ git pull</tspan></text>
+      <text x="1036" y="192" fill="#a4a8b0">Already up to date.</text>
+      <text x="1036" y="216"><tspan fill="#6fcf97">phi@web-01</tspan><tspan fill="#6d717a">:</tspan><tspan fill="#8b9cff">~/app</tspan><tspan fill="#e7e8ea"> $ systemctl status api</tspan></text>
+      <text x="1036" y="236"><tspan fill="#6fcf97">●</tspan><tspan fill="#e7e8ea"> api.service</tspan></text>
+      <text x="1036" y="256" fill="#a4a8b0">  Active: <tspan fill="#6fcf97">active (running)</tspan></text>
+      <text x="1036" y="276" fill="#a4a8b0">  Memory: 412.6M</text>
+      <text x="1036" y="300"><tspan fill="#6fcf97">phi@web-01</tspan><tspan fill="#6d717a">:</tspan><tspan fill="#8b9cff">~/app</tspan><tspan fill="#e7e8ea"> $ cd logs</tspan></text>
+      <text x="1036" y="324"><tspan fill="#6fcf97">phi@web-01</tspan><tspan fill="#6d717a">:</tspan><tspan fill="#8b9cff">~/app/logs</tspan><tspan fill="#e7e8ea"> $ </tspan></text>
+      <rect x="1218" y="313" width="8" height="15" fill="#c9d0ff"/>
+    </g>
+    <!-- files panel following the shell -->
+    <rect x="1340" y="144" width="180" height="356" fill="#16181b"/>
+    <line x1="1340" y1="144" x2="1340" y2="500" stroke="#ffffff" stroke-opacity="0.065"/>
+    <g font-family="Inter" font-size="11.5">
+      <text x="1354" y="168" font-family="JetBrains Mono" font-size="10.5" fill="#6d717a">~/app/logs</text>
+      <text x="1354" y="196" fill="#e7e8ea">access.log</text><text x="1506" y="196" text-anchor="end" fill="#6d717a">88 MB</text>
+      <text x="1354" y="220" fill="#e7e8ea">error.log</text><text x="1506" y="220" text-anchor="end" fill="#6d717a">2 MB</text>
+      <text x="1354" y="244" fill="#e7e8ea">api-1107.gz</text><text x="1506" y="244" text-anchor="end" fill="#6d717a">31 MB</text>
+      <text x="1354" y="268" fill="#e7e8ea">api-1106.gz</text><text x="1506" y="268" text-anchor="end" fill="#6d717a">29 MB</text>
+      <rect x="1350" y="440" width="160" height="40" rx="8" fill="#1c1e22"/>
+      <text x="1362" y="456" font-size="10.5" fill="#a4a8b0">upload deploy.tar</text>
+      <rect x="1362" y="464" width="136" height="4" rx="2" fill="#24272c"/>
+      <rect x="1362" y="464" width="92" height="4" rx="2" fill="#8b9cff"/>
+    </g>
+    <!-- status -->
+    <rect x="1020" y="478" width="320" height="22" fill="#121316"/>
+    <text x="1036" y="493" font-family="JetBrains Mono" font-size="10" fill="#6d717a">cpu 12%   mem 3.1/16G   disk 41%   up 23d</text>
+  </g>
+  <rect x="820.5" y="70.5" width="699" height="429" rx="13.5" fill="none" stroke="#ffffff" stroke-opacity="0.1"/>
+</svg>
