@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { KeyRound, ShieldAlert, ShieldQuestion, UserRound } from "lucide-react";
 import { api } from "../lib/api";
-import { set, type Prompt } from "../lib/store";
+import { upsertSession } from "../lib/data";
+import { get, set, type Prompt } from "../lib/store";
 import { Button } from "./ui";
 
 /** Questions from the engine: unknown host keys, passwords, key passphrases, 2FA codes. */
@@ -11,6 +12,12 @@ export function PromptCard({ prompt }: { prompt: Prompt }) {
   const [remember, setRemember] = useState(p.kind === "hostKey" ? true : false);
   const send = (ok: boolean, rememberOverride?: boolean) => {
     set((s) => ({ prompts: s.prompts.filter((q) => q.id !== prompt.id) }));
+    // a remembered password belongs to the saved session: mark it, or the next save would forget it
+    if (ok && remember && p.kind === "password" && prompt.term != null) {
+      const pane = Object.values(get().panes).find((x) => x.term === prompt.term);
+      const saved = pane && get().sessions.find((x) => x.id === pane.session.id);
+      if (saved && !saved.save_password) upsertSession({ ...saved, save_password: true });
+    }
     api.answer(prompt.id, ok ? { values, remember: rememberOverride ?? remember } : null).catch(() => {});
   };
   const submit = (e: React.FormEvent) => {

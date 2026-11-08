@@ -164,7 +164,7 @@ fn has_password(id: Uuid) -> bool {
 // ---------------------------------------------------------------- terminals
 
 #[tauri::command]
-fn term_open(app: State<'_, App>, session: Session, cols: u16, rows: u16, output: Channel<InvokeResponseBody>) -> R<TermId> {
+async fn term_open(app: State<'_, App>, session: Session, cols: u16, rows: u16, output: Channel<InvokeResponseBody>) -> R<TermId> {
     // register the channel before anything can print: open() picks the id, so hold output until then
     let id = app.core.open(session, Size { cols, rows }).map_err(errx)?;
     app.sink.attach(id, output);
@@ -172,14 +172,14 @@ fn term_open(app: State<'_, App>, session: Session, cols: u16, rows: u16, output
 }
 
 #[tauri::command]
-fn term_duplicate(app: State<'_, App>, of: TermId, cols: u16, rows: u16, output: Channel<InvokeResponseBody>) -> R<TermId> {
+async fn term_duplicate(app: State<'_, App>, of: TermId, cols: u16, rows: u16, output: Channel<InvokeResponseBody>) -> R<TermId> {
     let id = app.core.duplicate(of, Size { cols, rows }).map_err(errx)?;
     app.sink.attach(id, output);
     Ok(id)
 }
 
 #[tauri::command]
-fn term_reconnect(app: State<'_, App>, id: TermId, cols: u16, rows: u16) -> R<()> {
+async fn term_reconnect(app: State<'_, App>, id: TermId, cols: u16, rows: u16) -> R<()> {
     app.core.reconnect(id, Size { cols, rows }).map_err(errx)
 }
 
@@ -263,14 +263,14 @@ async fn sftp_read_text(app: State<'_, App>, id: TermId, path: String) -> R<Stri
 }
 
 #[tauri::command]
-fn sftp_download(app: State<'_, App>, id: TermId, paths: Vec<String>, dir: Option<String>) -> Uuid {
+async fn sftp_download(app: State<'_, App>, id: TermId, paths: Vec<String>, dir: Option<String>) -> R<Uuid> {
     let dir = dir.map(PathBuf::from).unwrap_or_else(|| download_dir(&app.core.store.settings()));
-    app.core.sftp_download(id, paths, dir)
+    Ok(app.core.sftp_download(id, paths, dir))
 }
 
 #[tauri::command]
-fn sftp_upload(app: State<'_, App>, id: TermId, paths: Vec<String>, dir: String) -> Uuid {
-    app.core.sftp_upload(id, paths.into_iter().map(PathBuf::from).collect(), dir)
+async fn sftp_upload(app: State<'_, App>, id: TermId, paths: Vec<String>, dir: String) -> R<Uuid> {
+    Ok(app.core.sftp_upload(id, paths.into_iter().map(PathBuf::from).collect(), dir))
 }
 
 #[tauri::command]
@@ -300,13 +300,14 @@ fn reveal(handle: AppHandle, app: State<'_, App>, path: String) -> R<()> {
 // ---------------------------------------------------------------- tunnels
 
 #[tauri::command]
-fn tunnel_start(app: State<'_, App>, tunnel: Tunnel) -> R<()> {
+async fn tunnel_start(app: State<'_, App>, tunnel: Tunnel) -> R<()> {
     app.core.start_tunnel(tunnel).map_err(errx)
 }
 
 #[tauri::command]
-fn tunnel_stop(app: State<'_, App>, id: Uuid) {
+async fn tunnel_stop(app: State<'_, App>, id: Uuid) -> R<()> {
     app.core.stop_tunnel(id);
+    Ok(())
 }
 
 // ---------------------------------------------------------------- misc

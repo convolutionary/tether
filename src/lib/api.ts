@@ -202,13 +202,13 @@ export const api = {
   hasPassword: (id: string) => invoke<boolean>("has_password", { id }),
 
   termOpen: (session: Session, cols: number, rows: number, onData: (d: Uint8Array) => void) => {
-    const output = new Channel<ArrayBuffer>();
-    output.onmessage = (m) => onData(new Uint8Array(m));
+    const output = new Channel<ArrayBuffer | number[]>();
+    output.onmessage = (m) => onData(m instanceof ArrayBuffer ? new Uint8Array(m) : Uint8Array.from(m));
     return invoke<number>("term_open", { session, cols, rows, output });
   },
   termDuplicate: (of: number, cols: number, rows: number, onData: (d: Uint8Array) => void) => {
-    const output = new Channel<ArrayBuffer>();
-    output.onmessage = (m) => onData(new Uint8Array(m));
+    const output = new Channel<ArrayBuffer | number[]>();
+    output.onmessage = (m) => onData(m instanceof ArrayBuffer ? new Uint8Array(m) : Uint8Array.from(m));
     return invoke<number>("term_duplicate", { of, cols, rows, output });
   },
   termReconnect: (id: number, cols: number, rows: number) => invoke<void>("term_reconnect", { id, cols, rows }),

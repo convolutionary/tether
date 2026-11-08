@@ -247,6 +247,21 @@ export function label(s: Session): string {
   return s.user ? `${s.user}@${s.host}` : s.host;
 }
 
+/** Engine events for a terminal id the UI hasn't been told about yet (it arrives with the reply). */
+const early = new Map<number, EngineEvent[]>();
+
+function bind(pane: string, id: number) {
+  patchPane(pane, { term: id });
+  const x = xts.get(pane);
+  // the terminal may have been fitted before it had an id
+  if (x) api.termResize(id, x.term.cols, x.term.rows).catch(() => {});
+  const held = early.get(id);
+  if (held) {
+    early.delete(id);
+    held.forEach(handleEngine);
+  }
+}
+
 async function start(pane: Pane) {
   const s = pane.session;
   const [cols, rows] = pane.size;
@@ -254,14 +269,14 @@ async function start(pane: Pane) {
     const x = ensureXterm(pane.key);
     try {
       const id = await api.termOpen(s, cols, rows, (d) => x.term.write(d));
-      patchPane(pane.key, { term: id });
+      bind(pane.key, id);
     } catch (e) {
       patchPane(pane.key, { status: "exited", exit: { code: null, reason: String(e) } });
     }
   } else {
     try {
       const id = await api.termOpen(s, cols, rows, () => {});
-      patchPane(pane.key, { term: id });
+      bind(pane.key, id);
     } catch (e) {
       patchPane(pane.key, { status: "exited", exit: { code: null, reason: String(e) } });
     }
@@ -323,7 +338,7 @@ export async function splitActive(dir: "row" | "column") {
     const x = makeXterm(pane.key);
     try {
       const id = await api.termDuplicate(p.term, pane.size[0], pane.size[1], (d) => x.term.write(d));
-      patchPane(pane.key, { term: id });
+      bind(pane.key, id);
     } catch (e) {
       patchPane(pane.key, { status: "exited", exit: { code: null, reason: String(e) } });
     }
@@ -345,7 +360,7 @@ export async function duplicateTab(pane: string) {
     const x = makeXterm(np.key);
     try {
       const id = await api.termDuplicate(p.term, np.size[0], np.size[1], (d) => x.term.write(d));
-      patchPane(np.key, { term: id });
+      bind(np.key, id);
     } catch (e) {
       patchPane(np.key, { status: "exited", exit: { code: null, reason: String(e) } });
     }
@@ -448,6 +463,13 @@ const ANSI_DIM = "\x1b[2m";
 const ANSI_RESET = "\x1b[0m";
 
 export function handleEngine(e: EngineEvent) {
+  // hold events of a terminal the UI doesn't know yet
+  if ((e.type === "status" || e.type === "ready" || e.type === "exit" || e.type === "viewerExit") && !paneByTerm(e.term)) {
+    const list = early.get(e.term) ?? [];
+    list.push(e);
+    early.set(e.term, list);
+    return;
+  }
   switch (e.type) {
     case "status": {
       const p = paneByTerm(e.term);
