@@ -42,10 +42,12 @@ export function App() {
       applyAppearance();
       retheme();
       un.push(await onEngine(handleEngine));
-      un.push(await onOpenUrl((url) => {
+      const openUrl = (url: string) => {
         const s = quick(url);
         if (s) openSession(s);
-      }));
+      };
+      un.push(await onOpenUrl(openUrl));
+      if (boot.openUrl) openUrl(boot.openUrl);
       const mq = window.matchMedia("(prefers-color-scheme: dark)");
       const onScheme = () => {
         applyAppearance();

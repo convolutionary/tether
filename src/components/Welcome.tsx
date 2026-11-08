@@ -25,7 +25,7 @@ export function Welcome() {
               <button key={s.id} className="welcome-row" onClick={() => openSession(s)}>
                 <Dot protocol={s.protocol} color={s.color} />
                 <span className="wr-name">{label(s)}</span>
-                <span className="wr-target mono">{s.protocol === "serial" ? s.device : s.host}</span>
+                <span className="wr-target mono">{s.protocol === "serial" ? s.device : label(s).includes(s.host) ? "" : s.host}</span>
                 <span className="wr-when">{recent.length ? ago(s.last_used) : s.protocol.toUpperCase()}</span>
               </button>
             ))}

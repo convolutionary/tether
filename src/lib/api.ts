@@ -118,6 +118,7 @@ export interface Boot {
   downloadDir: string;
   hasSshConfig: boolean;
   runningTunnels: string[];
+  openUrl: string | null;
 }
 
 export interface RemoteInfo {

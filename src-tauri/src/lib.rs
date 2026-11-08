@@ -84,7 +84,11 @@ struct Boot {
     download_dir: String,
     has_ssh_config: bool,
     running_tunnels: Vec<Uuid>,
+    /// an ssh://… link Tether was started with; handed out once, so a reload doesn't reopen it
+    open_url: Option<String>,
 }
+
+static LAUNCH_URL: parking_lot::Mutex<Option<String>> = parking_lot::Mutex::new(None);
 
 fn download_dir(settings: &Settings) -> PathBuf {
     if !settings.download_dir.trim().is_empty() {
@@ -111,6 +115,7 @@ fn bootstrap(app: State<'_, App>) -> Boot {
         download_dir: download_dir(&settings).to_string_lossy().into_owned(),
         has_ssh_config: tether_core::ssh::ssh_dir().join("config").exists(),
         running_tunnels,
+        open_url: LAUNCH_URL.lock().take(),
         tunnels,
         settings,
     }
@@ -337,6 +342,8 @@ pub fn run() {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::try_from_env("TETHER_LOG").unwrap_or_else(|_| "warn".into()))
         .init();
+
+    *LAUNCH_URL.lock() = std::env::args().skip(1).find(|a| a.contains("://"));
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _| {

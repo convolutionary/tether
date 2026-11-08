@@ -46,6 +46,13 @@ npx tauri dev                   # run it
 npx tauri build                 # .deb / .AppImage (Linux), .exe / .msi (Windows)
 ```
 
+Install for your user (binary in `~/.local/bin`, an entry in the app launcher, registered for
+`ssh://` links; no root needed). Run it again to update, `--uninstall` to remove:
+
+```sh
+scripts/install-local.sh
+```
+
 Windows needs only Rust, Node and the WebView2 runtime (Windows 10/11 have it).
 
 Tests: `cargo test -p tether-core`. The end-to-end check runs the real engine against an `sshd`:
@@ -59,4 +66,4 @@ Interface preview with mocked data: `npx vite --config dev/vite.preview.ts`, the
 `http://localhost:1421/?scene=terminal` (also `split`, `hostkey`, `password`, `transfer`, `editor`,
 `palette`, `settings`; add `&theme=light`).
 
-CI builds and tests on Linux and Windows on every push, and attaches installers to the run.
+CI is set up to build and test on Linux and Windows on every push and attach the installers to the run.
